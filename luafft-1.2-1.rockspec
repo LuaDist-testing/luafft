@@ -1,15 +1,16 @@
 -- This file was automatically generated for the LuaDist project.
 
 package = "luafft"
-version = "1.1-1"
+version = "1.2-1"
 -- LuaDist source
 source = {
-  tag = "1.1-1",
+  tag = "1.2-1",
   url = "git://github.com/LuaDist-testing/luafft.git"
 }
 -- Original source
 -- source = {
---    url = "http://www.mindfarming.de/luafft/downloads/luafft-1.1.zip"
+--   url = "git://github.com/h4rm/luafft",
+--   tag = "v1.2",
 -- }
 description = {
    summary = "Lua package that includes functions for Fast Fourier Transformations.",
@@ -17,12 +18,12 @@ description = {
       This is a port of the KissFFT Library which is a C implementation of the Fast Fourier Transformation (FFT).
 	  It contains an easy-to-use function to carry out FFTs. For complex numbers, a module from the Numeric Lua Library has been used.
    ]],
-   homepage = "http://www.mindfarming.de/luafft",
+   homepage = "https://github.com/h4rm/luafft",
    license = "MIT/X11"
 }
 
 dependencies = {
-   "lua >= 5.1"
+   "lua >= 5.2"
 }
 build = {
 type = "builtin",
