@@ -1,4 +1,6 @@
 --[[
+This package provides functions to carry out Fast Fourier Transformations.
+
 Copyright (C) 2011 by Benjamin von Ardenne
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -40,6 +42,25 @@ function msg(...)
 end
 
 ---------------------------------------------------------------
+-- Returns the next possible size for data input
+--
+--@param n	Size
+--
+--@return	Next fast size.
+function next_possible_size(n)
+  local m = n
+  while (1) do
+    m = n
+    while m%2 == 0 do m = m/2 end
+    while m%3 == 0 do m = m/3 end
+    while m%5 == 0 do m = m/5 end
+	if m <= 1 then break end
+    n = n + 1
+  end
+  return n
+end
+
+---------------------------------------------------------------
 --Calculates the Fast Fourier Transformation of the given input
 --
 --@param input		A set of points that will be transformed.
@@ -54,6 +75,8 @@ function fft(input, inverse)
 	--the size of input defines the number of total points
 	local num_points = #input
 
+	assert(#input == next_possible_size(#input), string.format("The size of your input is not correct. For your size=%i, use a table of size=%i with zeros at the end.", #input, next_possible_size(#input)))
+
 	local twiddles = {}
 	for i = 0,num_points-1 do
 		local phase = -2*math.pi * i / num_points
@@ -64,12 +87,22 @@ function fft(input, inverse)
 	local factors = calculate_factors(num_points)
 	local output = {}
 	msg("FFT Initialization completed.\nFactors of size " .. #factors)
-	--for i,v in ipairs(factors) do msg(v) end
-	--for i,v in ipairs(twiddles) do msg(v) end
 	work(input, output, 1, 1, factors,1, twiddles, 1, 1, inverse)
 	return output
 
 end
+
+---------------------------------------------------------------
+--Calculates the real Fast Fourier Transformation of the given real input
+--
+
+---------------------------------------------------------------
+function fftr(input, inverse)
+
+
+end
+
+
 
 ---------------------------------------------------------------
 -- Short helper function that provides an easy way to print a list with values.
@@ -91,7 +124,8 @@ function work(input, output, out_index, f, factors, factors_index, twiddles, fst
 
 	if m == 1 then
 		repeat
-			output[out_index] = input[f]
+			if type(input[f]) == "number" then output[out_index] = complex.new(input[f],0)
+			else output[out_index] = input[f] end
 			f = f + fstride*in_stride
 			out_index = out_index +1
 		until out_index == last
@@ -141,23 +175,7 @@ function calculate_factors(num_points)
   return buf
 end
 
----------------------------------------------------------------
--- Returns the next fast size
---
---@param n	Size
---
---@return	Next fast size.
-function next_fast_size(n)
-  local m = n
-  while m <= 1 do
-    m = n
-    while m%2 == 0 do m = m/2 end
-    while m%3 == 0 do m = m/3 end
-    while m%5 == 0 do m = m/5 end
-    n = n + 1
-  end
-  return n
-end
+
 
 ---------------------------------------------------------------
 --Carries out a butterfly 2 run of the input sample.
@@ -211,7 +229,7 @@ function butterfly4(input,out_index, fstride, twiddles, m, inverse)
 
 			input[i+m3][1] = scratch[5][1] + scratch[4][2]
 			input[i+m3][2] = scratch[5][2] - scratch[4][1]
-			else
+		else
 			input[i+m][1] = scratch[5][1] + scratch[4][2]
 			input[i+m][2] = scratch[5][2] - scratch[4][1]
 
@@ -271,7 +289,7 @@ function butterfly5(input,out_index, fstride, twiddles, m, inverse)
 	for u = 0,m-1 do
 		scratch[0] = input[i0]
 
-		scratch[1] = input[i1] * tw[1+u*fstrides]
+		scratch[1] = input[i1] * tw[1+u*fstride]
 		scratch[2] = input[i2] * tw[1+2*u*fstride]
 		scratch[3] = input[i3] * tw[1+3*u*fstride]
 		scratch[4] = input[i4] * tw[1+4*u*fstride]
@@ -284,20 +302,20 @@ function butterfly5(input,out_index, fstride, twiddles, m, inverse)
 		input[i0][1] = input[i0][1] + scratch[7][1] + scratch[8][1]
 		input[i0][2] = input[i0][2] + scratch[7][2] + scratch[8][2]
 
-		scratch[5][1] = scratch[0][1] + scratch[7][1]*ya[1] + scratch[8][1]*yb[1]
-		scratch[5][2] = scratch[0][2] + scratch[7][2]*ya[1] + scratch[8][2]*yb[1]
+		scratch[5] = 	complex.new(	scratch[0][1] + scratch[7][1]*ya[1] + scratch[8][1]*yb[1],
+										scratch[0][2] + scratch[7][2]*ya[1] + scratch[8][2]*yb[1])
 
-		scratch[6][1] =  scratch[10][2]*ya[2] + scratch[9][2]*yb[2]
-		scratch[6][2] =  -1* scratch[10][1]*ya[2] + scratch[9][1]*yb[2]
+		scratch[6]	=	complex.new(	scratch[10][2]*ya[2] + scratch[9][2]*yb[2],
+										-1* scratch[10][1]*ya[2] + scratch[9][1]*yb[2])
 
 		input[i1] = scratch[5] - scratch[6]
 		input[i4] = scratch[5] + scratch[6]
 
-		scratch[11][1] = scratch[0][1] + scratch[7][1]*yb[1] + scratch[8][1]*ya[1]
-		scratch[11][2] = scratch[0][2] + scratch[7][2]*yb[1] + scratch[8][2]*ya[1]
+		scratch[11] =	complex.new( 	scratch[0][1] + scratch[7][1]*yb[1] + scratch[8][1]*ya[1],
+										scratch[0][2] + scratch[7][2]*yb[1] + scratch[8][2]*ya[1])
 
-		scratch[12][1] = -1* scratch[10][2]*yb[2] + scratch[9][2]*ya[2]
-		scratch[12][2] = scratch[10][1]*yb[2] - scratch[9][1]*ya[2]
+		scratch[12] =	complex.new( 	-1* scratch[10][2]*yb[2] + scratch[9][2]*ya[2],
+										scratch[10][1]*yb[2] - scratch[9][1]*ya[2])
 
 		input[i2] = scratch[11] + scratch[12]
 		input[i3] = scratch[11] - scratch[12]

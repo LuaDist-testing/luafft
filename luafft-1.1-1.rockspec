@@ -1,15 +1,15 @@
 -- This file was automatically generated for the LuaDist project.
 
 package = "luafft"
-version = "1.0-1"
+version = "1.1-1"
 -- LuaDist source
 source = {
-  tag = "1.0-1",
+  tag = "1.1-1",
   url = "git://github.com/LuaDist-testing/luafft.git"
 }
 -- Original source
 -- source = {
---    url = "http://www.mindfarming.de/luafft/downloads/luafft-1.0.zip"
+--    url = "http://www.mindfarming.de/luafft/downloads/luafft-1.1.zip"
 -- }
 description = {
    summary = "Lua package that includes functions for Fast Fourier Transformations.",
@@ -28,7 +28,7 @@ build = {
 type = "builtin",
    modules = {
      luafft = "src/luafft.lua",
-     complex = "src/complex.lua",
+	 complex = "src/complex.lua"
    },
-   copy_directories = { "docs", "samples"}
+   copy_directories = { "docs", "examples"}
 }
